@@ -50,7 +50,7 @@
             const status = document.getElementById('managerStatus');
             btn.disabled = true; btn.innerText = "호출 완료";
             status.innerText = "사장님께 호출 메시지를 보냈습니다.\n답변을 기다려 주세요.";
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbyHUiEEEMC-XhPdby1IKfijmNN_Ty8UMwtpU-IXWFQAa9Jz7XjmMRRjRUW-KkvydLwE/exec";
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbzQEvFRaxLEgzUL5eErwbs1lQTCohvm9-pwAuQFbE7fpDvTPElCyxLJBBh43nrEeQEY/exec";
             fetch(`${webAppUrl}?store_id=${storeId}&action=call`).finally(() => {
                 setTimeout(() => { btn.disabled = false; btn.innerText = "🔔 사장님 호출"; }, 10000);
             });
