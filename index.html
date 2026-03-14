@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3013 호출 시스템</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; -webkit-touch-callout: none; user-select: none; }
+        .bg-custom { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+    </style>
+</head>
+<body class="bg-custom h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border-t-8 border-blue-500">
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">3013 무인매장</h1>
+        <p class="text-gray-500 mb-8 font-medium">도움이 필요하시면 아래 버튼을 눌러주세요</p>
+        <button id="callBtn" onclick="sendCall()" class="w-full bg-blue-600 active:bg-blue-800 text-white font-bold py-8 rounded-2xl text-3xl transition duration-150 shadow-xl mb-6">
+            🔔 사장님 호출
+        </button>
+        <div id="statusBox" class="bg-blue-50 rounded-2xl p-6 min-h-[160px] flex flex-col justify-center border-2 border-blue-100">
+            <p id="managerStatus" class="text-xl text-blue-900 leading-relaxed font-semibold">
+                버튼을 누르면 사장님께<br>즉시 알림이 전달됩니다.
+            </p>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyC7z0PAJWUxXp926qwkS0Ofc8sPFvLKKYk",
+            authDomain: "storecall0313.firebaseapp.com",
+            databaseURL: "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "storecall0313",
+            storageBucket: "storecall0313.firebasestorage.app",
+            messagingSenderId: "617107282602",
+            appId: "1:617107282602:web:8a443ae17fcd6d93ce4ed3"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const storeId = "S001";
+        onValue(ref(db, `stores/${storeId}/manager_msg`), (snapshot) => {
+            const msg = snapshot.val();
+            if (msg) {
+                document.getElementById('managerStatus').innerHTML = `💬 사장님 답변:<br><span class="text-blue-700 text-2xl font-bold">${msg}</span>`;
+            }
+        });
+        window.sendCall = function() {
+            const btn = document.getElementById('callBtn');
+            const status = document.getElementById('managerStatus');
+            btn.disabled = true; btn.innerText = "호출 완료";
+            status.innerText = "사장님께 호출 메시지를 보냈습니다.\n답변을 기다려 주세요.";
+            const webAppUrl = "https://script.google.com/macros/s/AKfycbyHUiEEEMC-XhPdby1IKfijmNN_Ty8UMwtpU-IXWFQAa9Jz7XjmMRRjRUW-KkvydLwE/exec";
+            fetch(`${webAppUrl}?store_id=${storeId}&action=call`).finally(() => {
+                setTimeout(() => { btn.disabled = false; btn.innerText = "🔔 사장님 호출"; }, 10000);
+            });
+        };
+    </script>
+</body>
+</html>
