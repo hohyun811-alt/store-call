@@ -14,47 +14,71 @@
 <body class="bg-custom h-screen flex items-center justify-center p-4">
     <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center border-t-8 border-blue-500">
         <h1 class="text-3xl font-bold text-gray-800 mb-2">3013 무인매장</h1>
-        <p class="text-gray-500 mb-8 font-medium">도움이 필요하시면 아래 버튼을 눌러주세요</p>
-        <button id="callBtn" onclick="sendCall()" class="w-full bg-blue-600 active:bg-blue-800 text-white font-bold py-8 rounded-2xl text-3xl transition duration-150 shadow-xl mb-6">
+        <p id="statusText" class="text-gray-500 mb-8 font-medium">도움이 필요하시면 아래 버튼을 눌러주세요</p>
+
+        <button id="callBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 rounded-2xl text-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 mb-8">
             🔔 사장님 호출
         </button>
-        <div id="statusBox" class="bg-blue-50 rounded-2xl p-6 min-h-[160px] flex flex-col justify-center border-2 border-blue-100">
-            <p id="managerStatus" class="text-xl text-blue-900 leading-relaxed font-semibold">
-                버튼을 누르면 사장님께<br>즉시 알림이 전달됩니다.
+
+        <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100">
+            <p class="text-blue-600 font-bold mb-2 flex items-center justify-center gap-2">
+                <span class="text-xl">💬</span> 사장님 답변:
             </p>
+            <div id="managerMsgArea" class="text-xl font-bold text-blue-900 break-words min-h-[1.5rem]">
+                대기 중...
+            </div>
         </div>
     </div>
+
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-app.js";
-        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.10.0/firebase-database.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
         const firebaseConfig = {
-            apiKey: "AIzaSyC7z0PAJWUxXp926qwkS0Ofc8sPFvLKKYk",
-            authDomain: "storecall0313.firebaseapp.com",
-            databaseURL: "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "storecall0313",
-            storageBucket: "storecall0313.firebasestorage.app",
-            messagingSenderId: "617107282602",
-            appId: "1:617107282602:web:8a443ae17fcd6d93ce4ed3"
+            databaseURL: "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app"
         };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const storeId = "S001";
-        onValue(ref(db, `stores/${storeId}/manager_msg`), (snapshot) => {
-            const msg = snapshot.val();
-            if (msg) {
-                document.getElementById('managerStatus').innerHTML = `💬 사장님 답변:<br><span class="text-blue-700 text-2xl font-bold">${msg}</span>`;
+        const storeRef = ref(db, 'stores/S001');
+
+        const callBtn = document.getElementById('callBtn');
+        const statusText = document.getElementById('statusText');
+        const managerMsgArea = document.getElementById('managerMsgArea');
+
+        // [기능 1] 버튼 클릭 시 호출 상태로 변경
+        callBtn.addEventListener('click', () => {
+            update(storeRef, { 
+                status: "calling",
+                timestamp: Date.now()
+            });
+        });
+
+        // [기능 2] Firebase 데이터 실시간 감시 (버튼 상태 제어)
+        onValue(storeRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            if (data.status === "calling") {
+                // 호출 중일 때 UI
+                callBtn.innerText = "🔔 호출중...";
+                callBtn.classList.remove('bg-blue-600');
+                callBtn.classList.add('bg-gray-400');
+                callBtn.disabled = true;
+                statusText.innerText = "사장님께 호출 메시지를 보냈습니다.";
+            } else {
+                // 응답 완료 또는 초기 상태 UI
+                callBtn.innerText = "🔔 사장님 호출";
+                callBtn.classList.remove('bg-gray-400');
+                callBtn.classList.add('bg-blue-600');
+                callBtn.disabled = false;
+                statusText.innerText = "도움이 필요하시면 아래 버튼을 눌러주세요";
+                
+                if (data.manager_msg) {
+                    managerMsgArea.innerText = data.manager_msg;
+                }
             }
         });
-        window.sendCall = function() {
-            const btn = document.getElementById('callBtn');
-            const status = document.getElementById('managerStatus');
-            btn.disabled = true; btn.innerText = "호출 완료";
-            status.innerText = "사장님께 호출 메시지를 보냈습니다.\n답변을 기다려 주세요.";
-            const webAppUrl = "https://script.google.com/macros/s/AKfycbzQEvFRaxLEgzUL5eErwbs1lQTCohvm9-pwAuQFbE7fpDvTPElCyxLJBBh43nrEeQEY/exec";
-            fetch(`${webAppUrl}?store_id=${storeId}&action=call`).finally(() => {
-                setTimeout(() => { btn.disabled = false; btn.innerText = "🔔 사장님 호출"; }, 10000);
-            });
-        };
     </script>
 </body>
 </html>
