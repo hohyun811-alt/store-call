@@ -6,46 +6,68 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>3013 PREMIUM CALL</title>
+    <title>THE KIOSK | PREMIUM CONCIERGE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@300;500;700&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0f172a; color: #f8fafc; -webkit-user-select: none; user-select: none; }
-        .serif { font-family: 'Playfair Display', serif; }
-        .gold-gradient { background: linear-gradient(135deg, #c5a059 0%, #926d27 100%); }
-        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .premium-shadow { box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); }
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0f172a; color: #f8fafc; -webkit-user-select: none; user-select: none; overflow: hidden; }
+        .brand-logo { font-family: 'Cinzel', serif; letter-spacing: 0.5em; background: linear-gradient(to right, #d4af37, #f7e08b, #d4af37); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .gold-btn { background: linear-gradient(135deg, #c5a059 0%, #926d27 100%); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); transition: all 0.3s ease; }
+        .gold-btn:active { transform: scale(0.97); filter: brightness(1.1); }
+        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(212, 175, 55, 0.15); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6); }
+        
+        /* 태블릿 가로모드(Landscape) 프리미엄 최적화 */
+        @media (orientation: landscape) {
+            .main-card { width: 85%; max-width: 1100px; padding: 6rem 5rem; }
+            .title-text { font-size: 4.5rem; margin-bottom: 2rem; }
+            .msg-text { font-size: 2.2rem; line-height: 1.6; }
+            .btn-text { font-size: 2rem; padding: 1.8rem 0; }
+        }
+        
+        /* 세로모드(Portrait) 최적화 */
+        @media (orientation: portrait) {
+            .main-card { width: 90%; max-width: 500px; padding: 4rem 2rem; }
+            .title-text { font-size: 3rem; margin-bottom: 1.5rem; }
+            .msg-text { font-size: 1.5rem; line-height: 1.5; }
+            .btn-text { font-size: 1.5rem; padding: 1.2rem 0; }
+        }
     </style>
 </head>
-<body class="h-screen flex items-center justify-center p-6 overflow-hidden">
+<body class="h-screen w-screen flex items-center justify-center relative">
 
-    <div class="w-full max-w-lg glass rounded-[40px] p-12 text-center premium-shadow relative">
-        <div class="mb-16">
-            <h1 class="serif text-5xl mb-4 tracking-widest text-[#c5a059]">3013</h1>
-            <div class="h-[1px] w-12 bg-[#c5a059] mx-auto mb-6"></div>
-            <p id="main-display" class="text-xl font-light leading-relaxed tracking-tight text-slate-300 min-h-[100px] flex items-center justify-center">
-                직원이 잠시 자리를 비웠습니다.<br>도움이 필요하시면 아래 버튼을 눌러주십시오.
-            </p>
+    <div class="main-card glass rounded-[40px] text-center relative flex flex-col justify-between z-10">
+        <div>
+            <h1 class="brand-logo title-text font-bold uppercase">The Kiosk</h1>
+            <div class="h-[1px] w-32 bg-gradient-to-r from-transparent via-[#c5a059] to-transparent mx-auto opacity-50 mb-12"></div>
+            
+            <div class="min-h-[180px] flex items-center justify-center mb-12">
+                <p id="main-display" class="msg-text font-light tracking-tight text-slate-300">
+                    직원이 잠시 자리를 비웠습니다.<br>
+                    <span class="text-xl md:text-2xl opacity-50 block mt-6 font-extralight tracking-[0.2em]">도움이 필요하시면 아래 버튼을 눌러주십시오.</span>
+                </p>
+            </div>
         </div>
 
-        <div class="space-y-6">
-            <button id="call-btn" onclick="sendCall()" class="w-full gold-gradient text-white py-8 rounded-2xl text-2xl font-bold tracking-widest transition-all active:scale-95 shadow-lg">
+        <div class="flex justify-center w-full">
+            <button id="call-btn" onclick="sendCall()" class="gold-btn btn-text w-full max-w-2xl text-white rounded-full font-medium tracking-[0.3em]">
                 호출하기
             </button>
 
-            <button id="reset-btn" onclick="managerArrives()" class="hidden w-full border border-[#c5a059] text-[#c5a059] py-8 rounded-2xl text-2xl font-bold tracking-widest transition-all active:scale-95 bg-transparent">
-                서비스 종료 및 대기모드 전환
+            <button id="reset-btn" onclick="managerArrives()" class="hidden btn-text w-full max-w-2xl border border-[#c5a059] text-[#c5a059] rounded-full font-medium tracking-[0.2em] bg-transparent active:bg-[#c5a059] active:text-white transition-all">
+                응대 완료 및 대기 전환
             </button>
         </div>
 
-        <p class="mt-16 text-[10px] tracking-[0.3em] text-slate-500 uppercase">Premium Concierge Service</p>
+        <div class="absolute bottom-8 left-0 right-0 opacity-20 tracking-[0.6em] text-xs uppercase font-light text-center">
+            Premium Concierge Service
+        </div>
     </div>
 
-    <div onclick="managerLeaves()" class="absolute bottom-4 right-4 w-20 h-20 opacity-0 cursor-pointer z-50"></div>
+    <div onclick="managerLeaves()" class="absolute bottom-0 right-0 w-40 h-40 opacity-0 cursor-pointer z-50"></div>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
     <script>
         const GREETING = "직원이 잠시 자리를 비웠습니다. 직원의 응대가 필요하시면 호출 버튼을 눌러주세요";
         const FIREBASE_URL = "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -60,27 +82,26 @@
         const callBtn = document.getElementById('call-btn');
         const resetBtn = document.getElementById('reset-btn');
 
-        // 1. 음성 안내 루프
+        // 1. 안내 음성 루프 로직
         function speak() {
             if (!isLooping) return;
             synthesis.cancel();
             const msg = new SpeechSynthesisUtterance(GREETING);
             msg.lang = 'ko-KR';
-            msg.rate = 0.9;
-            msg.onend = () => { if(isLooping) setTimeout(speak, 5000); };
+            msg.rate = 0.85;
+            msg.onend = () => { if(isLooping) setTimeout(speak, 7000); };
             synthesis.speak(msg);
         }
 
         // 2. 초기 터치 시 음성 활성화
         document.body.addEventListener('click', () => { 
-            // 호출 중이거나 답변 화면일 때는 음성을 시작하지 않음
             if(!isLooping && !callBtn.disabled && resetBtn.classList.contains('hidden')) { 
                 isLooping = true; 
                 speak(); 
             } 
         }, {once: true});
 
-        // 3. 호출하기
+        // 3. 호출하기 로직
         function sendCall() {
             isLooping = false;
             synthesis.cancel();
@@ -88,31 +109,31 @@
             callBtn.disabled = true;
             callBtn.innerText = "연결 중...";
             callBtn.style.opacity = "0.5";
-            mainDisplay.innerHTML = "매니저에게 호출 신호를 보냈습니다.<br><span class='text-sm opacity-50 font-light mt-2'>잠시만 기다려 주십시오.</span>";
+            mainDisplay.innerHTML = "매니저에게 호출 신호를 보냈습니다.<br><span class='text-xl opacity-40 font-light mt-6 block tracking-widest'>잠시만 기다려 주십시오.</span>";
 
-            fetch(WEBHOOK_URL).then(() => console.log("Call Sent"));
+            fetch(WEBHOOK_URL).then(() => console.log("Call Sent")).catch(e => console.error(e));
         }
 
-        // 4. 답변 수신 대기 및 버튼 전환
+        // 4. 매니저 답변 수신 로직
         db.ref('stores/S001/manager_reply').on('value', (snap) => {
             const msg = snap.val();
             if (msg && msg !== "대기 중...") {
                 isLooping = false;
                 synthesis.cancel();
-                mainDisplay.innerHTML = `<span class='text-[#c5a059] font-bold text-3xl'>${msg}</span>`;
+                mainDisplay.innerHTML = `<span class='text-[#d4af37] font-bold text-5xl md:text-6xl tracking-tight leading-tight'>${msg}</span>`;
                 callBtn.classList.add('hidden');
-                resetBtn.classList.remove('hidden'); // 서비스 종료 버튼 활성화
+                resetBtn.classList.remove('hidden');
             }
         });
 
-        // 5. 매니저 도착 (서비스 종료 및 초기화)
+        // 5. 매니저 복귀 로직 (응대 완료 버튼 클릭)
         function managerArrives() {
             isLooping = false;
             synthesis.cancel();
             
             db.ref('stores/S001/manager_reply').set("대기 중...");
             
-            mainDisplay.innerHTML = "직원이 잠시 자리를 비웠습니다.<br>도움이 필요하시면 아래 버튼을 눌러주십시오.";
+            mainDisplay.innerHTML = "직원이 잠시 자리를 비웠습니다.<br><span class='text-xl md:text-2xl opacity-50 block mt-6 font-extralight tracking-[0.2em]'>도움이 필요하시면 아래 버튼을 눌러주십시오.</span>";
             callBtn.classList.remove('hidden');
             callBtn.disabled = false;
             callBtn.innerText = "호출하기";
@@ -120,9 +141,10 @@
             resetBtn.classList.add('hidden');
         }
 
-        // 6. 매니저 퇴실 (숨겨진 우측 하단 터치 시 음성 재시작)
+        // 6. 매니저 퇴실 로직 (우측 하단 터치 시)
         function managerLeaves() {
-            if(!resetBtn.classList.contains('hidden') || callBtn.disabled) return; // 호출 중/답변 중에는 작동안함
+            // 호출 중이거나 답변 화면일 때는 작동 방지
+            if(!resetBtn.classList.contains('hidden') || callBtn.disabled) return;
             alert("퇴실 확인: 안내 음성을 다시 시작합니다.");
             isLooping = true;
             speak();
