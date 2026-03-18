@@ -2,78 +2,209 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3013 호출 시스템</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>3013 무인매장 호출 시스템 (고도화)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; }
+        body { font-family: 'Noto Sans KR', sans-serif; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
         .bg-custom { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .reply-area { min-height: 180px; }
+        /* 매니저 퇴실용 숨겨진 버튼 스타일 */
+        .hidden-admin { position: absolute; bottom: 10px; right: 10px; font-size: 10px; color: rgba(255,255,255,0.1); background: none; border: none; cursor: pointer; }
     </style>
 </head>
-<body class="bg-custom h-screen flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">3013 무인매장</h1>
-        <p class="text-gray-500 mb-8">사장님께 호출 메시지를 보냅니다.</p>
+<body class="bg-custom h-screen flex flex-col items-center justify-center p-4 relative">
 
-        <button id="call-btn" onclick="sendCall()" class="w-full bg-gray-400 hover:bg-gray-500 text-white font-bold py-4 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 text-xl mb-6">
-            <span id="btn-text">🔔 호출하기</span>
-        </button>
+    <div class="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center flex-grow flex flex-col justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">3013 무인매장</h1>
+            <p id="display-text" class="text-xl text-gray-600 mb-8 font-medium reply-area flex items-center justify-center">
+                <span id="text-content">직원이 잠시 자리를 비웠습니다.<br>직원의 응대가 필요하시면 '호출' 버튼을 눌러주세요</span>
+            </p>
+        </div>
 
-        <div class="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-            <div class="flex items-center justify-center gap-2 mb-2 text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-                <span class="font-bold">사장님 답변:</span>
+        <div>
+            <div id="status-container" class="bg-blue-50 rounded-2xl p-6 border border-blue-100 mb-6 hidden">
+                <div class="flex items-center justify-center gap-2 mb-2 text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    <span id="status-title" class="font-bold">사장님 답변 대기 중</span>
+                </div>
             </div>
-            <p id="reply-text" class="text-2xl font-bold text-blue-800">대기 중...</p>
+
+            <button id="call-btn" onclick="sendCall()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-5 rounded-2xl transition-all duration-300 flex items-center justify-center gap-2 text-2xl mb-4">
+                <span id="btn-text">🔔 호출하기</span>
+            </button>
         </div>
     </div>
+
+    <button id="admin-leave-btn" class="hidden-admin" onclick="managerLeaves()">퇴실 처리 (음성 루프 시작)</button>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
     <script>
-        // 1. 호출 보내기 (Pipedream 연결)
-        function sendCall() {
-            const btn = document.getElementById('call-btn');
-            const btnText = document.getElementById('btn-text');
-            
-            btn.disabled = true;
-            btn.classList.replace('bg-gray-400', 'bg-blue-600');
-            btnText.innerText = "🔔 호출중...";
+        // === 설정 ===
+        const GREETING_TEXT = "직원이 잠시 자리를 비웠습니다. 직원의 응대가 필요하시면 '호출' 버튼을 눌러주세요";
+        const PIPEDREAM_WEBHOOK_URL = "https://eoxgjm9ebdy2yc5.m.pipedream.net";
+        const FIREBASE_DB_URL = "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const MANAGER_REPLY_PATH = 'stores/S001/manager_reply';
+        const RESET_LONGPRESS_DURATION = 3000; // 3초 길게 누르기
 
-            fetch("https://eoxgjm9ebdy2yc5.m.pipedream.net")
-                .then(response => {
-                    console.log("호출 성공");
-                })
+        // === 상태 및 요소 ===
+        let hasInteracted = false;
+        let voiceLoopActive = false;
+        let longPressTimer;
+        let isCalling = false;
+        const synthesis = window.speechSynthesis;
+        
+        const displayText = document.getElementById('display-text');
+        const textContent = document.getElementById('text-content');
+        const statusContainer = document.getElementById('status-container');
+        const statusTitle = document.getElementById('status-title');
+        const btn = document.getElementById('call-btn');
+        const btnText = document.getElementById('btn-text');
+
+        // === Firebase 초기화 ===
+        firebase.initializeApp({ databaseURL: FIREBASE_DB_URL });
+        const database = firebase.database();
+
+        // === 음성 루프 함수 ===
+        function startVoiceLoop() {
+            if (voiceLoopActive || isCalling) return;
+            voiceLoopActive = true;
+            synthesis.cancel(); // 혹시 진행 중인 음성 취소
+            const msgUtterance = new SpeechSynthesisUtterance(GREETING_TEXT);
+            msgUtterance.lang = 'ko-KR';
+            synthesis.speak(msgUtterance);
+            msgUtterance.onend = () => {
+                if (voiceLoopActive && !isCalling) {
+                    setTimeout(() => synthesis.speak(msgUtterance), 5000); // 5초 대기 후 반복
+                }
+            };
+        }
+
+        function stopVoiceLoop() {
+            voiceLoopActive = false;
+            synthesis.cancel();
+        }
+
+        // === 초기 상호작용 감지 (브라우저 자동 재생 차단 우회) ===
+        // 매장 오픈 후 첫 키오스크 화면 터치 시 음성 안내가 시작됩니다.
+        document.body.addEventListener('click', () => {
+            if (!hasInteracted) {
+                hasInteracted = true;
+                console.log("초기 상호작용 확인, 음성 루프 시작");
+                startVoiceLoop();
+            }
+        }, { once: true });
+
+        // === 고객용: 호출 보내기 ===
+        function sendCall() {
+            if (isCalling) return;
+            isCalling = true;
+            
+            // 음성 중단
+            stopVoiceLoop();
+
+            // UI 상태 변경: 호출 중
+            displayText.style.color = "#9ca3af"; // 안내 문구 희미하게
+            btn.disabled = true;
+            btn.classList.replace('bg-blue-600', 'bg-gray-400');
+            btnText.innerText = "🔔 호출중...";
+            statusContainer.classList.remove('hidden');
+            statusTitle.innerText = "매니저 답변 대기 중";
+
+            // Pipedream 웹훅 호출
+            fetch(PIPEDREAM_WEBHOOK_URL)
+                .then(response => console.log("호출 성공"))
                 .catch(error => {
                     console.error("호출 실패", error);
                     alert("호출에 실패했습니다. 다시 시도해주세요.");
-                    btn.disabled = false;
-                    btn.classList.replace('bg-blue-600', 'bg-gray-400');
-                    btnText.innerText = "🔔 호출하기";
+                    managerArrives(); // 실패 시 도착 로직과 유사하게 복구
                 });
         }
 
-        // 2. 사장님 답변 실시간 감시 (Firebase 연결)
-        const firebaseConfig = {
-            databaseURL: "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app"
-        };
-        firebase.initializeApp(firebaseConfig);
-
-        const replyRef = firebase.database().ref('stores/S001/manager_reply');
-        replyRef.on('value', (snapshot) => {
+        // === 사장님 답변 실시간 감시 (Firebase) ===
+        database.ref(MANAGER_REPLY_PATH).on('value', (snapshot) => {
             const message = snapshot.val();
-            const replyElement = document.getElementById('reply-text');
             
-            if (message && message !== "대기 중...") {
-                replyElement.innerText = message;
-                replyElement.classList.add('animate-bounce');
-                setTimeout(() => replyElement.classList.remove('animate-bounce'), 3000);
+            if (message && message !== "대기 중..." && isCalling) {
+                // 호출 중 상태에서 답변 수신 시 UI 전환
+                textContent.innerText = message; // 매니저 메시지 표시
+                displayText.style.color = "#1e40af"; // 매니저 메시지 파란색
+                displayText.classList.add('text-3xl', 'font-bold'); // 강조 스타일
+                statusTitle.innerText = "매니저 답변";
+                
+                // 고객 오작동 방지 위해 호출 버튼 숨김
+                btn.classList.add('hidden');
+                
+                // 매니저 도착 시 길게 눌러 초기화하는 기능 활성화
+                enableLongPressReset();
             }
         });
+
+        // === 매니저 도착 시 초기화 (Long Press) ===
+        // 고객이 실수로 터치해도 초기화되지 않도록 화면 영역을 3초간 길게 눌러야 초기화됩니다.
+        function enableLongPressReset() {
+            displayText.addEventListener('mousedown', startLongPress);
+            displayText.addEventListener('mouseup', cancelLongPress);
+            displayText.addEventListener('mouseleave', cancelLongPress);
+            displayText.addEventListener('touchstart', startLongPress);
+            displayText.addEventListener('touchend', cancelLongPress);
+        }
+
+        function startLongPress() {
+            longPressTimer = setTimeout(managerArrives, RESET_LONGPRESS_DURATION);
+            displayText.style.opacity = "0.5"; // 터치 중 시각적 피드백
+        }
+
+        function cancelLongPress() {
+            clearTimeout(longPressTimer);
+            displayText.style.opacity = "1";
+        }
+
+        function managerArrives() {
+            console.log("매니저 도착, 초기화 진행");
+            isCalling = false;
+            
+            // UI 상태 초기화: 호출하기 버튼으로 복귀
+            synthesis.cancel(); // 혹시 실행 중이면 중지
+            textContent.innerHTML = GREETING_TEXT; // 문구 초기화
+            displayText.style.color = "#4b5563"; // 원래 색상
+            displayText.style.opacity = "1";
+            displayText.classList.remove('text-3xl', 'font-bold');
+            statusContainer.classList.add('hidden'); // 답변 영역 숨김
+            
+            btn.classList.remove('hidden'); // 호출 버튼 표시
+            btn.disabled = false;
+            btn.classList.replace('bg-gray-400', 'bg-blue-600');
+            btnText.innerText = "🔔 호출하기";
+            
+            // Long press 이벤트 제거
+            displayText.removeEventListener('mousedown', startLongPress);
+            displayText.removeEventListener('mouseup', cancelLongPress);
+            displayText.removeEventListener('mouseleave', cancelLongPress);
+            displayText.removeEventListener('touchstart', startLongPress);
+            displayText.removeEventListener('touchend', cancelLongPress);
+            
+            // Firebase 답변 상태 초기화 (필수)
+            database.ref(MANAGER_REPLY_PATH).set("대기 중...");
+        }
+
+        // === 관리자용: 퇴실 처리 (음성 루프 시작) ===
+        // 매장 오른쪽 맨 하단 구석의 투명한 영역을 클릭하면 음성 루프가 다시 시작됩니다.
+        function managerLeaves() {
+            if (isCalling) {
+                alert("호출 중인 상태에서는 퇴실 처리를 할 수 없습니다.");
+                return;
+            }
+            console.log("매니저 퇴실, 음성 루프 시작");
+            alert("퇴실 처리되었습니다. 음성 안내 루프를 시작합니다.");
+            startVoiceLoop();
+        }
     </script>
 </body>
 </html>
