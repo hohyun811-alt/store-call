@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <title>THE KIOSK | PREMIUM CONCIERGE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* 기존 UI/UX CSS 100% 유지 */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0f1a; color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; user-select: none; -webkit-user-select: none; }
         .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 5rem 4rem; border-radius: 4px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; }
@@ -27,7 +24,6 @@
             <div class="decor-line"></div>
             <p class="text-[10px] tracking-[0.5em] uppercase opacity-30 mt-4">Luxury Concierge Excellence</p>
         </header>
-
         <main class="mb-14">
             <div id="main-display" class="min-h-[160px] flex flex-col items-center justify-center">
                 <p class="text-2xl font-light leading-relaxed tracking-tight text-slate-200">
@@ -36,20 +32,19 @@
                 </p>
             </div>
         </main>
-
         <footer class="flex flex-col items-center gap-6">
             <button id="call-btn" onclick="sendCall()" class="gold-btn w-full max-w-sm py-6 rounded-sm text-xl shadow-2xl">호출하기</button>
             <button id="reset-btn" onclick="managerArrives()" class="hidden outline-btn w-full max-w-sm py-6 rounded-sm text-xl">응대 완료 및 대기 전환</button>
         </footer>
     </div>
-    <div onclick="managerLeaves()" class="absolute bottom-0 right-0 w-32 h-32 opacity-0 cursor-pointer z-50"></div>
+    <div onclick="managerLeaves()" class="absolute bottom-0 right-0 w-32 h-32 opacity-0 cursor-pointer z-50"></div> 
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // 1. [동적 라우팅 추가] 접속 URL에서 매장 ID 추출 (없으면 기본값 S001)
+        // [수정된 핵심 로직] URL에서 매장 ID를 추출하여 변수에 저장
         const urlParams = new URLSearchParams(window.location.search);
-        const STORE_ID = urlParams.get('id') || "S001";
+        const STORE_ID = urlParams.get('store_id') || 'S001';
 
         const GREETING = "직원이 잠시 자리를 비웠습니다. 직원의 응대가 필요하시면 호출 버튼을 눌러주세요";
         const FIREBASE_URL = "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -60,56 +55,23 @@
         const synthesis = window.speechSynthesis;
         let isLooping = false;
         let firstTouchDone = false;
-
+        
         const mainDisplay = document.getElementById('main-display');
         const callBtn = document.getElementById('call-btn');
-        const resetBtn = document.getElementById('reset-btn');
+        const resetBtn = document.getElementById('reset-btn'); 
 
-        // 기존 로직 100% 유지
         function speak() { if (!isLooping) return; synthesis.cancel(); const msg = new SpeechSynthesisUtterance(GREETING); msg.lang = 'ko-KR'; msg.rate = 0.85; msg.onend = () => { if(isLooping) setTimeout(speak, 7000); }; synthesis.speak(msg); }
         document.body.addEventListener('click', () => { if (!firstTouchDone) { firstTouchDone = true; if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { isLooping = true; speak(); } } });
-
-        window.sendCall = function() {
-            if (callBtn.disabled) return;
-            isLooping = false;
-            synthesis.cancel();
-            callBtn.disabled = true;
-            callBtn.innerText = "REQUESTING...";
-            callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-sm text-xl";
-            callBtn.style.opacity = "0.5";
-            mainDisplay.innerHTML = `<p class="text-xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`;
-
-            // 2. [통신 규격 변경] Webhook 전송 시 해당 매장의 STORE_ID를 꼬리표로 붙여서 발송
-            fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }).catch(e => console.error(e));
-        };
-
-        // 3. [데이터베이스 경로 변경] 전체 매장이 아닌 '자신의 매장 ID' 폴더만 감시
-        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => {
-            const msg = snap.val();
-            if (msg && msg !== "대기 중...") {
-                isLooping = false;
-                synthesis.cancel();
-                mainDisplay.innerHTML = `<span class='text-[#c5a059] font-medium text-4xl md:text-5xl tracking-tight leading-snug'>${msg}</span>`;
-                callBtn.classList.add('hidden');
-                resetBtn.classList.remove('hidden');
-            }
-        });
-
-        window.managerArrives = function() {
-            // 4. [데이터베이스 경로 변경] '자신의 매장 ID' 폴더의 상태를 초기화
-            db.ref(`stores/${STORE_ID}/manager_reply`).set("대기 중...");
-            
-            mainDisplay.innerHTML = `<p class="text-2xl font-light leading-relaxed tracking-tight text-slate-200">직원이 잠시 자리를 비웠습니다.<br><span class="text-lg opacity-40 block mt-6 font-extralight tracking-widest italic">Please press the button for assistance.</span></p>`;
-            callBtn.className = "gold-btn w-full max-w-sm py-6 rounded-sm text-xl shadow-2xl";
-            callBtn.innerText = "호출하기";
-            callBtn.disabled = false;
-            callBtn.style.opacity = "1";
-            callBtn.classList.remove('hidden');
-            resetBtn.classList.add('hidden');
-            isLooping = true;
-            speak();
-        };
-
+        
+        // [수정] 호출 시 파이프드림으로 해당 매장 ID(STORE_ID)를 전송
+        window.sendCall = function() { if (callBtn.disabled) return; isLooping = false; synthesis.cancel(); callBtn.disabled = true; callBtn.innerText = "REQUESTING..."; callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-sm text-xl"; callBtn.style.opacity = "0.5"; mainDisplay.innerHTML = `<p class="text-xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`; fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }); };
+        
+        // [수정] Firebase 구독 경로를 해당 매장 ID로 변경
+        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => { const msg = snap.val(); if (msg && msg !== "대기 중...") { isLooping = false; synthesis.cancel(); mainDisplay.innerHTML = `<span class='text-[#c5a059] font-medium text-4xl md:text-5xl tracking-tight leading-snug'>${msg}</span>`; callBtn.classList.add('hidden'); resetBtn.classList.remove('hidden'); } });
+        
+        // [수정] 복귀 시 해당 매장 ID의 Firebase 데이터를 대기 상태로 초기화
+        window.managerArrives = function() { db.ref(`stores/${STORE_ID}/manager_reply`).set("대기 중..."); mainDisplay.innerHTML = `<p class="text-2xl font-light leading-relaxed tracking-tight text-slate-200">직원이 잠시 자리를 비웠습니다.<br><span class="text-lg opacity-40 block mt-6 font-extralight tracking-widest italic">Please press the button for assistance.</span></p>`; callBtn.className = "gold-btn w-full max-w-sm py-6 rounded-sm text-xl shadow-2xl"; callBtn.innerText = "호출하기"; callBtn.disabled = false; callBtn.style.opacity = "1"; callBtn.classList.remove('hidden'); resetBtn.classList.add('hidden'); isLooping = true; speak(); };
+        
         window.managerLeaves = function() { if(!resetBtn.classList.contains('hidden') || callBtn.disabled) return; isLooping = true; speak(); };
     </script>
 </body>
