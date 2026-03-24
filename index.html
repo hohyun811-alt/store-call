@@ -9,9 +9,14 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0f1a; color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; user-select: none; -webkit-user-select: none; }
-        .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 5rem 4rem; border-radius: 4px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; }
+        .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 3.5rem 4rem; border-radius: 8px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; }
         .brand-logo { font-family: 'Playfair Display', serif; letter-spacing: 0.6em; color: #c5a059; text-transform: uppercase; }
-        .gold-btn { background-color: #c5a059; color: #ffffff; transition: all 0.3s ease; letter-spacing: 0.3em; font-weight: 500; border: none; cursor: pointer; }
+        
+        /* 중앙 메시지 박스 얌전하게 조정 */
+        .message-box { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2); padding: 2.5rem 2rem; border-radius: 6px; margin-bottom: 1.5rem; min-height: 180px; display: flex; align-items: center; justify-content: center; }
+        
+        /* 버튼 크기 및 굵기 강조 */
+        .gold-btn { background-color: #c5a059; color: #ffffff; transition: all 0.3s ease; letter-spacing: 0.2em; font-weight: 700; border: none; cursor: pointer; }
         .gold-btn:active { transform: scale(0.98); background-color: #a68445; }
         .outline-btn { border: 1px solid rgba(197, 160, 89, 0.5); color: #c5a059; transition: all 0.3s ease; letter-spacing: 0.1em; background: transparent; cursor: pointer; }
         .decor-line { height: 1px; width: 60px; background: linear-gradient(90deg, transparent, #c5a059, transparent); margin: 1.5rem auto; }
@@ -19,22 +24,26 @@
 </head>
 <body>
     <div class="premium-card text-center">
-        <header class="mb-14">
+        <header class="mb-6">
             <h1 class="brand-logo text-4xl md:text-5xl">The Kiosk</h1>
             <div class="decor-line"></div>
-            <p class="text-[10px] tracking-[0.5em] uppercase opacity-30 mt-4">Luxury Concierge Excellence</p>
         </header>
-        <main class="mb-14">
-            <div id="main-display" class="min-h-[160px] flex flex-col items-center justify-center">
-                <p class="text-2xl font-light leading-relaxed tracking-tight text-slate-200">
-                    직원이 잠시 자리를 비웠습니다.<br>
-                    <span class="text-lg opacity-40 block mt-6 font-extralight tracking-widest italic">Please press the button for assistance.</span>
-                </p>
+
+        <main>
+            <div class="message-box">
+                <div id="main-display">
+                    <p class="text-xl md:text-2xl font-light leading-relaxed tracking-tight text-slate-200">
+                        직원이 잠시 자리를 비웠습니다.<br>
+                        응대가 필요하시면 <span class="text-[#c5a059] font-medium">[호출하기]</span>버튼을 눌러주세요!
+                    </p>
+                </div>
             </div>
+            <p class="text-sm opacity-40 mb-8 font-extralight tracking-widest italic">Please press the button for assistance.</p>
         </main>
-        <footer class="flex flex-col items-center gap-6">
-            <button id="call-btn" onclick="sendCall()" class="gold-btn w-full max-w-sm py-6 rounded-sm text-xl shadow-2xl">호출하기</button>
-            <button id="reset-btn" onclick="managerArrives()" class="hidden outline-btn w-full max-w-sm py-6 rounded-sm text-xl">응대 완료 및 대기 전환</button>
+
+        <footer class="flex flex-col items-center gap-6 mt-4">
+            <button id="call-btn" onclick="sendCall()" class="gold-btn w-full max-w-sm py-6 rounded-md text-2xl font-bold shadow-[0_8px_30px_rgba(197,160,89,0.35)]">호출하기</button>
+            <button id="reset-btn" onclick="managerArrives()" class="hidden outline-btn w-full max-w-sm py-6 rounded-md text-xl">응대 완료 및 대기 전환</button>
         </footer>
     </div>
     <div onclick="managerLeaves()" class="absolute bottom-0 right-0 w-32 h-32 opacity-0 cursor-pointer z-50"></div> 
@@ -42,11 +51,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script>
-        // [수정된 핵심 로직] URL에서 매장 ID를 추출하여 변수에 저장
         const urlParams = new URLSearchParams(window.location.search);
         const STORE_ID = urlParams.get('store_id') || 'S001';
 
-        const GREETING = "직원이 잠시 자리를 비웠습니다. 직원의 응대가 필요하시면 호출 버튼을 눌러주세요";
+        const GREETING_TEXT = "직원이 잠시 자리를 비웠습니다. 응대가 필요하시면 호출하기 버튼을 눌러주세요!";
         const FIREBASE_URL = "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app";
         const WEBHOOK_URL = "https://eoi3awxk3goghm7.m.pipedream.net";
         
@@ -60,17 +68,34 @@
         const callBtn = document.getElementById('call-btn');
         const resetBtn = document.getElementById('reset-btn'); 
 
-        function speak() { if (!isLooping) return; synthesis.cancel(); const msg = new SpeechSynthesisUtterance(GREETING); msg.lang = 'ko-KR'; msg.rate = 0.85; msg.onend = () => { if(isLooping) setTimeout(speak, 7000); }; synthesis.speak(msg); }
+        function speak() { if (!isLooping) return; synthesis.cancel(); const msg = new SpeechSynthesisUtterance(GREETING_TEXT); msg.lang = 'ko-KR'; msg.rate = 0.85; msg.onend = () => { if(isLooping) setTimeout(speak, 7000); }; synthesis.speak(msg); }
         document.body.addEventListener('click', () => { if (!firstTouchDone) { firstTouchDone = true; if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { isLooping = true; speak(); } } });
         
-        // [수정] 호출 시 파이프드림으로 해당 매장 ID(STORE_ID)를 전송
-        window.sendCall = function() { if (callBtn.disabled) return; isLooping = false; synthesis.cancel(); callBtn.disabled = true; callBtn.innerText = "REQUESTING..."; callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-sm text-xl"; callBtn.style.opacity = "0.5"; mainDisplay.innerHTML = `<p class="text-xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`; fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }); };
+        window.sendCall = function() { if (callBtn.disabled) return; isLooping = false; synthesis.cancel(); callBtn.disabled = true; callBtn.innerText = "REQUESTING..."; callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-md text-xl"; callBtn.style.opacity = "0.5"; mainDisplay.innerHTML = `<p class="text-xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`; fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }); };
         
-        // [수정] Firebase 구독 경로를 해당 매장 ID로 변경
-        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => { const msg = snap.val(); if (msg && msg !== "대기 중...") { isLooping = false; synthesis.cancel(); mainDisplay.innerHTML = `<span class='text-[#c5a059] font-medium text-4xl md:text-5xl tracking-tight leading-snug'>${msg}</span>`; callBtn.classList.add('hidden'); resetBtn.classList.remove('hidden'); } });
+        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => { 
+            const msg = snap.val(); 
+            if (msg && msg !== "대기 중...") { 
+                isLooping = false; 
+                synthesis.cancel(); 
+                mainDisplay.innerHTML = `<span class='text-[#c5a059] font-medium text-3xl md:text-4xl tracking-tight leading-snug'>${msg}</span>`; 
+                callBtn.classList.add('hidden'); 
+                resetBtn.classList.remove('hidden'); 
+            } 
+        });
         
-        // [수정] 복귀 시 해당 매장 ID의 Firebase 데이터를 대기 상태로 초기화
-        window.managerArrives = function() { db.ref(`stores/${STORE_ID}/manager_reply`).set("대기 중..."); mainDisplay.innerHTML = `<p class="text-2xl font-light leading-relaxed tracking-tight text-slate-200">직원이 잠시 자리를 비웠습니다.<br><span class="text-lg opacity-40 block mt-6 font-extralight tracking-widest italic">Please press the button for assistance.</span></p>`; callBtn.className = "gold-btn w-full max-w-sm py-6 rounded-sm text-xl shadow-2xl"; callBtn.innerText = "호출하기"; callBtn.disabled = false; callBtn.style.opacity = "1"; callBtn.classList.remove('hidden'); resetBtn.classList.add('hidden'); isLooping = true; speak(); };
+        window.managerArrives = function() { 
+            db.ref(`stores/${STORE_ID}/manager_reply`).set("대기 중..."); 
+            mainDisplay.innerHTML = `<p class="text-xl md:text-2xl font-light leading-relaxed tracking-tight text-slate-200">직원이 잠시 자리를 비웠습니다.<br>응대가 필요하시면 <span class="text-[#c5a059] font-medium">[호출하기]</span>버튼을 눌러주세요!</p>`; 
+            callBtn.className = "gold-btn w-full max-w-sm py-6 rounded-md text-2xl font-bold shadow-[0_8px_30px_rgba(197,160,89,0.35)]"; 
+            callBtn.innerText = "호출하기"; 
+            callBtn.disabled = false; 
+            callBtn.style.opacity = "1"; 
+            callBtn.classList.remove('hidden'); 
+            resetBtn.classList.add('hidden'); 
+            isLooping = true; 
+            speak(); 
+        };
         
         window.managerLeaves = function() { if(!resetBtn.classList.contains('hidden') || callBtn.disabled) return; isLooping = true; speak(); };
     </script>
