@@ -65,7 +65,7 @@
         const synthesis = window.speechSynthesis;
         let isLooping = false;
         let firstTouchDone = false;
-        let currentUtterance = null; // 메모리 소실 방지용 전역 변수
+        let currentUtterance = null;
         
         const mainDisplay = document.getElementById('main-display');
         const callBtn = document.getElementById('call-btn');
@@ -73,30 +73,37 @@
 
         function speak() { 
             if (!isLooping) return; 
-            synthesis.cancel(); 
+            
+            synthesis.cancel(); // 이전 음성 초기화
+            synthesis.resume(); // 태블릿 절전모드에서 TTS 엔진 강제 기상 (Crucial Fix)
+            
             currentUtterance = new SpeechSynthesisUtterance(GREETING_TEXT); 
             currentUtterance.lang = 'ko-KR'; 
             currentUtterance.rate = 0.85; 
+            currentUtterance.volume = 1.0; // 볼륨 강제 최대화
             currentUtterance.onend = () => { if(isLooping) setTimeout(speak, 7000); }; 
+            
+            // 만약 엔진 오류가 나도 루프가 끊기지 않게 방어 코드 추가
+            currentUtterance.onerror = () => { if(isLooping) setTimeout(speak, 7000); };
+
             synthesis.speak(currentUtterance); 
         }
 
-        // 브라우저 오디오 권한 강제 해제(Unlock) 로직 추가
-        function initAudio() {
+        // 지연(setTimeout) 없는 즉각적인 오디오 권한 해제 로직
+        function unlockAudio(e) {
             if (!firstTouchDone) { 
                 firstTouchDone = true; 
-                let unlockUtterance = new SpeechSynthesisUtterance('');
-                synthesis.speak(unlockUtterance);
                 
                 if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { 
                     isLooping = true; 
-                    setTimeout(speak, 100); 
+                    speak(); // 딜레이 없이 터치하는 즉시 실행해야 브라우저가 차단하지 않음
                 } 
             }
         }
         
-        document.addEventListener('click', initAudio, { once: true });
-        document.addEventListener('touchstart', initAudio, { passive: true, once: true });
+        // 화면의 가장 상위 계층에서 터치를 감지하도록 설정 (true 옵션)
+        window.addEventListener('click', unlockAudio, true);
+        window.addEventListener('touchstart', unlockAudio, true);
         
         window.sendCall = function() { 
             if (callBtn.disabled) return; 
