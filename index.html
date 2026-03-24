@@ -11,12 +11,9 @@
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0f1a; color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; user-select: none; -webkit-user-select: none; }
         .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 3.5rem 4rem; border-radius: 8px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; }
         
-        /* 로고 및 가로줄 길이 최적화 */
         .title-wrapper { display: inline-block; text-align: center; }
         .brand-logo { font-family: 'Playfair Display', serif; letter-spacing: 0.6em; color: #c5a059; text-transform: uppercase; margin-right: -0.6em; }
-        .decor-line { height: 1px; width: 100%; background: linear-gradient(90deg, transparent, #c5a059, transparent); margin: 1.5rem auto 0; }
         
-        /* 박스 세로 크기 축소 */
         .message-box { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2); padding: 1.5rem 2rem; border-radius: 6px; margin-bottom: 1.5rem; min-height: 140px; display: flex; align-items: center; justify-content: center; }
         
         .gold-btn { background-color: #c5a059; color: #ffffff; transition: all 0.3s ease; letter-spacing: 0.2em; font-weight: 700; border: none; cursor: pointer; }
@@ -26,10 +23,9 @@
 </head>
 <body>
     <div class="premium-card text-center">
-        <header class="mb-6">
+        <header class="mb-8">
             <div class="title-wrapper">
                 <h1 class="brand-logo text-4xl md:text-5xl">The Kiosk</h1>
-                <div class="decor-line"></div>
             </div>
         </header>
 
@@ -42,7 +38,7 @@
                     </p>
                 </div>
             </div>
-            <p class="text-base md:text-lg opacity-60 mb-8 font-extralight tracking-widest italic">Please press the button for assistance.</p>
+            <p class="text-lg md:text-xl opacity-70 mb-8 font-extralight tracking-widest italic">Please press the button for assistance.</p>
         </main>
 
         <footer class="flex flex-col items-center gap-6 mt-4">
@@ -75,9 +71,4 @@
         function speak() { if (!isLooping) return; synthesis.cancel(); const msg = new SpeechSynthesisUtterance(GREETING_TEXT); msg.lang = 'ko-KR'; msg.rate = 0.85; msg.onend = () => { if(isLooping) setTimeout(speak, 7000); }; synthesis.speak(msg); }
         document.body.addEventListener('click', () => { if (!firstTouchDone) { firstTouchDone = true; if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { isLooping = true; speak(); } } });
         
-        window.sendCall = function() { if (callBtn.disabled) return; isLooping = false; synthesis.cancel(); callBtn.disabled = true; callBtn.innerText = "REQUESTING..."; callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-md text-xl"; callBtn.style.opacity = "0.5"; mainDisplay.innerHTML = `<p class="text-2xl md:text-3xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`; fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }); };
-        
-        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => { 
-            const msg = snap.val(); 
-            if (msg && msg !== "대기 중...") { 
-                is
+        window.sendCall = function() { if
