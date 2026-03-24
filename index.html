@@ -9,10 +9,8 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap');
         
-        /* 화면 중앙 정렬을 모바일/태블릿에 맞게 최적화 (100dvh 사용) */
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0f1a; color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; margin: 0; user-select: none; -webkit-user-select: none; }
         
-        /* 카드 상하 여백을 줄여 시각적 중앙을 맞춤 */
         .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 2.5rem 4rem; border-radius: 8px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; margin-top: -2vh; }
         
         .title-wrapper { display: inline-block; text-align: center; }
@@ -67,6 +65,7 @@
         const synthesis = window.speechSynthesis;
         let isLooping = false;
         let firstTouchDone = false;
+        let currentUtterance = null; // 메모리 소실 방지용 전역 변수
         
         const mainDisplay = document.getElementById('main-display');
         const callBtn = document.getElementById('call-btn');
@@ -75,25 +74,29 @@
         function speak() { 
             if (!isLooping) return; 
             synthesis.cancel(); 
-            const msg = new SpeechSynthesisUtterance(GREETING_TEXT); 
-            msg.lang = 'ko-KR'; 
-            msg.rate = 0.85; 
-            msg.onend = () => { if(isLooping) setTimeout(speak, 7000); }; 
-            synthesis.speak(msg); 
+            currentUtterance = new SpeechSynthesisUtterance(GREETING_TEXT); 
+            currentUtterance.lang = 'ko-KR'; 
+            currentUtterance.rate = 0.85; 
+            currentUtterance.onend = () => { if(isLooping) setTimeout(speak, 7000); }; 
+            synthesis.speak(currentUtterance); 
         }
 
-        // 모바일 및 태블릿 환경에 맞춘 오디오 활성화 로직 (터치 이벤트 추가)
+        // 브라우저 오디오 권한 강제 해제(Unlock) 로직 추가
         function initAudio() {
             if (!firstTouchDone) { 
                 firstTouchDone = true; 
+                let unlockUtterance = new SpeechSynthesisUtterance('');
+                synthesis.speak(unlockUtterance);
+                
                 if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { 
                     isLooping = true; 
-                    speak(); 
+                    setTimeout(speak, 100); 
                 } 
             }
         }
-        document.body.addEventListener('click', initAudio);
-        document.body.addEventListener('touchstart', initAudio, { passive: true });
+        
+        document.addEventListener('click', initAudio, { once: true });
+        document.addEventListener('touchstart', initAudio, { passive: true, once: true });
         
         window.sendCall = function() { 
             if (callBtn.disabled) return; 
