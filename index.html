@@ -8,146 +8,151 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href='data:application/manifest+json;utf8,{"name":"THE KIOSK","short_name":"KIOSK","display":"standalone","start_url":".","background_color":"#0a0f1a","theme_color":"#0a0f1a"}'>
-    
+    <link rel="manifest" href='data:application/manifest+json,{"name":"THE KIOSK","short_name":"KIOSK","display":"standalone"}'>
+
     <title>THE KIOSK | PREMIUM CONCIERGE</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@100;300;400;500;700&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0a0f1a; color: #f1f5f9; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; height: 100dvh; margin: 0; user-select: none; -webkit-user-select: none; }
-        .premium-card { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(25px); border: 1px solid rgba(197, 160, 89, 0.2); width: 85%; max-width: 850px; padding: 2.5rem 4rem; border-radius: 8px; box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7); position: relative; z-index: 10; margin-top: -2vh; }
-        .title-wrapper { display: inline-block; text-align: center; }
-        .brand-logo { font-family: 'Playfair Display', serif; letter-spacing: 0.6em; color: #c5a059; text-transform: uppercase; margin-right: -0.6em; }
-        .message-box { border: 1px solid rgba(255, 255, 255, 0.08); background: rgba(0, 0, 0, 0.2); padding: 1.5rem 2rem; border-radius: 6px; margin-bottom: 1.5rem; min-height: 140px; display: flex; align-items: center; justify-content: center; }
-        .gold-btn { background-color: #c5a059; color: #ffffff; transition: all 0.3s ease; letter-spacing: 0.2em; font-weight: 700; border: none; cursor: pointer; }
-        .gold-btn:active { transform: scale(0.98); background-color: #a68445; }
-        .outline-btn { border: 1px solid rgba(197, 160, 89, 0.5); color: #c5a059; transition: all 0.3s ease; letter-spacing: 0.1em; background: transparent; cursor: pointer; }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Noto+Sans+KR:wght@100;300;400;700&display=swap');
+        
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #0a0f1a; 
+            color: #f1f5f9; 
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* [핵심] 중앙 카드를 화면의 80% 크기로 고정 */
+        .premium-card { 
+            width: 85vw; /* 가로 85% */
+            height: 80vh; /* 세로 80% */
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(30px); 
+            border: 1px solid rgba(197, 160, 89, 0.3); 
+            border-radius: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 60px 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .title-wrapper { text-align: center; }
+        .brand-logo { 
+            font-family: 'Playfair Display', serif; 
+            letter-spacing: 0.8em; 
+            color: #c5a059; 
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* 상태 메시지 및 답장 영역 확대 */
+        .status-text { font-size: 3.5rem; font-weight: 700; line-height: 1.3; margin-top: 2rem; }
+        .reply-box { 
+            font-size: 2.2rem; 
+            color: #c5a059; 
+            background: rgba(197, 160, 89, 0.1); 
+            padding: 30px 50px; 
+            border-radius: 20px;
+            margin-top: 30px;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-left: 5px solid #c5a059;
+            width: 90%;
+        }
+
+        .gold-btn { 
+            background-color: #c5a059; 
+            color: #ffffff; 
+            font-size: 2.8rem; 
+            font-weight: 700;
+            padding: 35px 80px; 
+            border-radius: 100px;
+            transition: all 0.3s ease; 
+            letter-spacing: 0.2em;
+            box-shadow: 0 10px 30px rgba(197, 160, 89, 0.3);
+            width: 100%;
+            max-width: 600px;
+        }
+        .gold-btn:active { transform: scale(0.95); background-color: #a68445; }
+        
+        .loading-dots:after { content: ' .'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%, 20% { content: ' .'; } 40% { content: ' ..'; } 60% { content: ' ...'; } 80%, 100% { content: ''; } }
     </style>
 </head>
 <body>
-    <div class="premium-card text-center">
-        <header class="mb-8">
-            <div class="title-wrapper">
-                <h1 class="brand-logo text-4xl md:text-5xl">The Kiosk</h1>
-            </div>
-        </header>
 
-        <main>
-            <div class="message-box">
-                <div id="main-display">
-                    <p class="text-2xl md:text-3xl font-light leading-relaxed tracking-tight text-slate-200">
-                        직원이 잠시 자리를 비웠습니다.<br>
-                        응대가 필요하시면 <span class="text-[#c5a059] font-medium">[호출하기]</span>버튼을 눌러주세요!
-                    </p>
-                </div>
-            </div>
-            <p class="text-lg md:text-xl opacity-70 mb-8 font-extralight tracking-widest italic">Please press the button for assistance.</p>
-        </main>
+    <div class="premium-card">
+        <div class="title-wrapper">
+            <div class="brand-logo">THE KIOSK</div>
+            <div id="store-name" style="color: rgba(197, 160, 89, 0.6); font-size: 1.2rem; letter-spacing: 0.3em;">PREMIUM CONCIERGE</div>
+        </div>
 
-        <footer class="flex flex-col items-center gap-6 mt-4">
-            <button id="call-btn" onclick="sendCall()" class="gold-btn w-full max-w-sm py-6 rounded-md text-2xl font-bold shadow-[0_8px_30px_rgba(197,160,89,0.35)]">호출하기</button>
-            <button id="reset-btn" onclick="managerArrives()" class="hidden outline-btn w-full max-w-sm py-6 rounded-md text-xl">응대 완료 및 대기 전환</button>
-        </footer>
+        <div class="text-center">
+            <div id="main-status" class="status-text">도움이 필요하시면<br>아래 버튼을 눌러주세요</div>
+            <div id="manager-reply-area" class="reply-box" style="display: none;">
+                <span id="reply-content">매니저의 답변을 기다리는 중...</span>
+            </div>
+        </div>
+
+        <button id="call-btn" class="gold-btn">MANAGER CALL</button>
     </div>
-    <div onclick="managerLeaves()" class="absolute bottom-0 right-0 w-32 h-32 opacity-0 cursor-pointer z-50"></div> 
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
     <script>
+        // 1. 설정 및 초기화
+        const firebaseConfig = {
+            databaseURL: "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // 2. URL에서 매장 ID 추출
         const urlParams = new URLSearchParams(window.location.search);
-        const STORE_ID = urlParams.get('store_id') || 'S001';
-
-        const GREETING_TEXT = "직원이 잠시 자리를 비웠습니다. 응대가 필요하시면 호출하기 버튼을 눌러주세요!";
-        const FIREBASE_URL = "https://storecall0313-default-rtdb.asia-southeast1.firebasedatabase.app";
-        const WEBHOOK_URL = "https://eoi3awxk3goghm7.m.pipedream.net";
+        const storeId = urlParams.get('store_id') || 'S001';
         
-        firebase.initializeApp({ databaseURL: FIREBASE_URL });
-        const db = firebase.database();
-        const synthesis = window.speechSynthesis;
-        let isLooping = false;
-        let firstTouchDone = false;
-        let currentUtterance = null;
-        
-        const mainDisplay = document.getElementById('main-display');
         const callBtn = document.getElementById('call-btn');
-        const resetBtn = document.getElementById('reset-btn'); 
+        const mainStatus = document.getElementById('main-status');
+        const replyArea = document.getElementById('manager-reply-area');
+        const replyContent = document.getElementById('reply-content');
 
-        function speak() { 
-            if (!isLooping) return; 
-            synthesis.cancel(); 
-            synthesis.resume(); 
-            currentUtterance = new SpeechSynthesisUtterance(GREETING_TEXT); 
-            currentUtterance.lang = 'ko-KR'; 
-            currentUtterance.rate = 0.85; 
-            currentUtterance.volume = 1.0; 
-            currentUtterance.onend = () => { if(isLooping) setTimeout(speak, 7000); }; 
-            currentUtterance.onerror = () => { if(isLooping) setTimeout(speak, 7000); };
-            synthesis.speak(currentUtterance); 
-        }
+        // 3. 호출 버튼 로직 (기능 유지)
+        callBtn.onclick = function() {
+            const timestamp = new Date().getTime();
+            
+            // Firebase 데이터 업데이트 (호출 신호)
+            database.ref('stores/' + storeId).update({
+                call_signal: timestamp,
+                manager_reply: "", // 호출 시 기존 답변 초기화
+                reply_at: 0
+            });
 
-        function unlockAudioAndFullscreen(e) {
-            // 전체화면 강제 전환 로직
-            if (!document.fullscreenElement) {
-                if (document.documentElement.requestFullscreen) {
-                    document.documentElement.requestFullscreen().catch(err => console.log(err));
-                } else if (document.documentElement.webkitRequestFullscreen) {
-                    document.documentElement.webkitRequestFullscreen();
-                }
-            }
-
-            if (!firstTouchDone) { 
-                firstTouchDone = true; 
-                if(!callBtn.disabled && resetBtn.classList.contains('hidden')) { 
-                    isLooping = true; 
-                    speak(); 
-                } 
-            }
-        }
-        
-        window.addEventListener('click', unlockAudioAndFullscreen, true);
-        window.addEventListener('touchstart', unlockAudioAndFullscreen, true);
-        
-        window.sendCall = function() { 
-            if (callBtn.disabled) return; 
-            isLooping = false; 
-            synthesis.cancel(); 
-            callBtn.disabled = true; 
-            callBtn.innerText = "REQUESTING..."; 
-            callBtn.className = "outline-btn w-full max-w-sm py-6 rounded-md text-xl"; 
-            callBtn.style.opacity = "0.5"; 
-            mainDisplay.innerHTML = `<p class="text-2xl md:text-3xl font-light text-slate-400 tracking-[0.1em] animate-pulse">매니저에게 신호를 전달하고 있습니다.</p>`; 
-            fetch(`${WEBHOOK_URL}?store_id=${STORE_ID}`, { mode: 'no-cors' }); 
+            // UI 변경
+            mainStatus.innerHTML = "매니저에게 신호를<br><span class='loading-dots'>보내고 있습니다</span>";
+            callBtn.style.display = "none";
+            replyArea.style.display = "flex";
+            replyContent.innerText = "매니저가 메시지를 확인 중입니다.";
         };
-        
-        db.ref(`stores/${STORE_ID}/manager_reply`).on('value', (snap) => { 
-            const msg = snap.val(); 
-            if (msg && msg !== "대기 중...") { 
-                isLooping = false; 
-                synthesis.cancel(); 
-                mainDisplay.innerHTML = `<span class='text-[#c5a059] font-medium text-3xl md:text-4xl tracking-tight leading-snug'>${msg}</span>`; 
-                callBtn.classList.add('hidden'); 
-                resetBtn.classList.remove('hidden'); 
-            } 
+
+        // 4. 매니저 답장 실시간 리스너 (기능 유지)
+        database.ref('stores/' + storeId).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data && data.manager_reply) {
+                mainStatus.innerHTML = "매니저가 곧<br>도착합니다";
+                replyContent.innerText = data.manager_reply;
+                replyArea.style.display = "flex";
+            }
         });
-        
-        window.managerArrives = function() { 
-            db.ref(`stores/${STORE_ID}/manager_reply`).set("대기 중..."); 
-            mainDisplay.innerHTML = `<p class="text-2xl md:text-3xl font-light leading-relaxed tracking-tight text-slate-200">직원이 잠시 자리를 비웠습니다.<br>응대가 필요하시면 <span class="text-[#c5a059] font-medium">[호출하기]</span>버튼을 눌러주세요!</p>`; 
-            callBtn.className = "gold-btn w-full max-w-sm py-6 rounded-md text-2xl font-bold shadow-[0_8px_30px_rgba(197,160,89,0.35)]"; 
-            callBtn.innerText = "호출하기"; 
-            callBtn.disabled = false; 
-            callBtn.style.opacity = "1"; 
-            callBtn.classList.remove('hidden'); 
-            resetBtn.classList.add('hidden'); 
-            isLooping = true; 
-            speak(); 
-        };
-        
-        window.managerLeaves = function() { 
-            if(!resetBtn.classList.contains('hidden') || callBtn.disabled) return; 
-            isLooping = true; 
-            speak(); 
-        };
     </script>
 </body>
 </html>
